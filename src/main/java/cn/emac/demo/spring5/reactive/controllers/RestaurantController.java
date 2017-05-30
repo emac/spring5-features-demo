@@ -2,7 +2,6 @@ package cn.emac.demo.spring5.reactive.controllers;
 
 import cn.emac.demo.spring5.reactive.domain.Restaurant;
 import cn.emac.demo.spring5.reactive.repositories.RestaurantRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -16,18 +15,26 @@ import reactor.core.scheduler.Schedulers;
 @RestController
 public class RestaurantController {
 
-    @Autowired
-    private RestaurantRepository restaurantRepository;
+    private final RestaurantRepository restaurantRepository;
 
-    @Autowired
-    private ReactiveMongoTemplate reactiveMongoTemplate;
+    private final ReactiveMongoTemplate reactiveMongoTemplate;
 
-    @GetMapping("/reactive/restaurant/{id}")
+    public RestaurantController(RestaurantRepository restaurantRepository, ReactiveMongoTemplate reactiveMongoTemplate) {
+        this.restaurantRepository = restaurantRepository;
+        this.reactiveMongoTemplate = reactiveMongoTemplate;
+    }
+
+    @GetMapping("/reactive/restaurants")
+    public Flux<Restaurant> findAll() {
+        return restaurantRepository.findAll();
+    }
+
+    @GetMapping("/reactive/restaurants/{id}")
     public Mono<Restaurant> get(@PathVariable String id) {
         return restaurantRepository.findById(id);
     }
 
-    @PostMapping("/reactive/restaurant")
+    @PostMapping("/reactive/restaurants")
     public Flux<Restaurant> create(@RequestBody Restaurant[] restaurants) {
         return Flux.just(restaurants)
                 .log()
