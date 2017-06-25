@@ -8,6 +8,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
+
 /**
  * @author Emac
  * @since 2017-05-29
@@ -29,14 +31,19 @@ public class RestaurantController {
         return restaurantRepository.findAll();
     }
 
+    @GetMapping("/reactive/delay/restaurants")
+    public Flux<Restaurant> findAllDelay() {
+        return restaurantRepository.findAll().delayElements(Duration.ofSeconds(1));
+    }
+
     @GetMapping("/reactive/restaurants/{id}")
     public Mono<Restaurant> get(@PathVariable String id) {
         return restaurantRepository.findById(id);
     }
 
     @PostMapping("/reactive/restaurants")
-    public Flux<Restaurant> create(@RequestBody Restaurant[] restaurants) {
-        return Flux.just(restaurants)
+    public Flux<Restaurant> create(@RequestBody Flux<Restaurant> restaurants) {
+        return restaurants
                 .log()
                 .flatMap(r -> Mono.just(r).subscribeOn(Schedulers.parallel()), 10)
                 .flatMap(reactiveMongoTemplate::insert);

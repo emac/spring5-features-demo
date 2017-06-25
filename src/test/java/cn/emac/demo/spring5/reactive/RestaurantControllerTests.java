@@ -35,7 +35,7 @@ public class RestaurantControllerTests {
 
         // prepare
         WebClient webClient = WebClient.create("http://localhost:9090");
-        Restaurant[] restaurants = IntStream.range(1, 100)
+        Restaurant[] restaurants = IntStream.range(0, 100)
                 .mapToObj(String::valueOf)
                 .map(s -> new Restaurant(s, s, s))
                 .toArray(Restaurant[]::new);

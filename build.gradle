@@ -34,7 +34,7 @@ dependencies {
 
 	compile('org.springframework.boot:spring-boot-starter-data-jpa')
 	// comment to activate auto-binding of request parameters using reactive data types
-	compile('org.springframework.boot:spring-boot-starter-data-rest')
+//	compile('org.springframework.boot:spring-boot-starter-data-rest')
 	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
 
 	compileOnly('org.projectlombok:lombok')

@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 import org.springframework.web.reactive.config.EnableWebFlux;
+import reactor.core.publisher.Flux;
+
+import java.util.stream.IntStream;
 
 /**
  * @author Emac
@@ -21,7 +24,11 @@ public class ReactiveConfig {
     public CommandLineRunner initData(RestaurantRepository restaurantRepository) {
         return args -> {
             restaurantRepository.deleteAll().block();
-            restaurantRepository.save(new Restaurant("hello", "hello", "hello")).block();
+            Restaurant[] restaurants = IntStream.range(0, 3)
+                    .mapToObj(String::valueOf)
+                    .map(s -> new Restaurant(s, s, s))
+                    .toArray(Restaurant[]::new);
+            restaurantRepository.saveAll(Flux.just(restaurants)).subscribe();
         };
     }
 }
