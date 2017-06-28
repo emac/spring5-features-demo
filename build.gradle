@@ -1,15 +1,15 @@
 buildscript {
-	ext {
-		springBootVersion = '2.0.0.M1'
-	}
-	repositories {
-		mavenCentral()
-		maven { url 'https://repo.spring.io/libs-snapshot' }
-		maven { url 'https://repo.spring.io/libs-milestone' }
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-	}
+    ext {
+        springBootVersion = '2.0.0.M1'
+    }
+    repositories {
+        mavenCentral()
+        maven { url 'https://repo.spring.io/libs-snapshot' }
+        maven { url 'https://repo.spring.io/libs-milestone' }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
 }
 
 apply plugin: 'java'
@@ -22,25 +22,28 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
-	mavenCentral()
-	maven { url 'https://repo.spring.io/snapshot' }
-	maven { url 'https://repo.spring.io/milestone' }
+    mavenCentral()
+    maven { url 'https://repo.spring.io/snapshot' }
+    maven { url 'https://repo.spring.io/milestone' }
 }
 
 dependencies {
-	compile('org.springframework.boot:spring-boot-starter-webflux')
-	compile('org.springframework.boot:spring-boot-starter-data-redis-reactive')
-	compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
+    // reactive
+    compile('org.springframework.boot:spring-boot-starter-webflux')
+    compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
+    // uncomment to use tomcat server
+    compile('org.springframework.boot:spring-boot-starter-tomcat')
 
-	compile('org.springframework.boot:spring-boot-starter-data-jpa')
-	// comment to activate auto-binding of request parameters using reactive data types
+    testCompile('io.projectreactor.addons:reactor-test')
+
+    // servlet
+//	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
+    // comment to activate auto-binding of request parameters using reactive data types
 //	compile('org.springframework.boot:spring-boot-starter-data-rest')
-	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
 
-	compileOnly('org.projectlombok:lombok')
-
-	runtime('com.h2database:h2')
-
-	testCompile('org.springframework.boot:spring-boot-starter-test')
-	testCompile('io.projectreactor.addons:reactor-test')
+    // shared
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compileOnly('org.projectlombok:lombok')
+    runtime('com.h2database:h2')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
 }

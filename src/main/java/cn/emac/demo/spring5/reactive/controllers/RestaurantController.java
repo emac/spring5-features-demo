@@ -6,7 +6,6 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 
@@ -44,8 +43,7 @@ public class RestaurantController {
     @PostMapping("/reactive/restaurants")
     public Flux<Restaurant> create(@RequestBody Flux<Restaurant> restaurants) {
         return restaurants
-                .log()
-                .flatMap(r -> Mono.just(r).subscribeOn(Schedulers.parallel()), 10)
-                .flatMap(reactiveMongoTemplate::insert);
+                .buffer(10000)
+                .flatMap(rs -> reactiveMongoTemplate.insert(rs, Restaurant.class));
     }
 }
