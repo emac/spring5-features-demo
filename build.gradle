@@ -32,7 +32,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-webflux')
     compile('org.springframework.boot:spring-boot-starter-data-mongodb-reactive')
     // uncomment to use tomcat server
-    compile('org.springframework.boot:spring-boot-starter-tomcat')
+//    compile('org.springframework.boot:spring-boot-starter-tomcat')
 
     testCompile('io.projectreactor.addons:reactor-test')
 

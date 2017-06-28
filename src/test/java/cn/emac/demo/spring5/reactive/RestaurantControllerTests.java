@@ -1,19 +1,23 @@
 package cn.emac.demo.spring5.reactive;
 
+import cn.emac.demo.spring5.reactive.controllers.RestaurantController;
 import cn.emac.demo.spring5.reactive.domain.Restaurant;
 import cn.emac.demo.spring5.reactive.repositories.RestaurantRepository;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.stream.IntStream;
 
 /**
@@ -21,20 +25,35 @@ import java.util.stream.IntStream;
  * @since 2017-05-29
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ActiveProfiles("test")
+@SpringBootTest
 public class RestaurantControllerTests {
 
     @Autowired
     private RestaurantRepository restaurantRepository;
 
+    @Autowired
+    private ReactiveMongoTemplate reactiveMongoTemplate;
+
+    private LocalDateTime start;
+
+    @Before
+    public void before() {
+        start = LocalDateTime.now();
+    }
+
+    @After
+    public void after() {
+        LocalDateTime end = LocalDateTime.now();
+        System.out.println(String.format("\nExecution time: %s milli-seconds", Duration.between(start, end).toMillis()));
+    }
+
     @Test
-    public void testAll() throws InterruptedException {
+    public void testNormal() throws InterruptedException {
         // start from scratch
         restaurantRepository.deleteAll().block();
 
         // prepare
-        WebClient webClient = WebClient.create("http://localhost:9090");
+        WebTestClient webClient = WebTestClient.bindToController(new RestaurantController(restaurantRepository, reactiveMongoTemplate)).build();
         Restaurant[] restaurants = IntStream.range(0, 100)
                 .mapToObj(String::valueOf)
                 .map(s -> new Restaurant(s, s, s))
@@ -45,27 +64,56 @@ public class RestaurantControllerTests {
                 .accept(MediaType.APPLICATION_JSON_UTF8)
                 .syncBody(restaurants)
                 .exchange()
-                .flatMapMany(resp -> resp.bodyToFlux(Restaurant.class))
-                .log()
-                // 通过toStream()批量获取结果，避免死锁
-                .toStream()
-                .forEach(r1 -> {
-                    // get
-                    AtomicBoolean result = new AtomicBoolean(false);
-                    CountDownLatch latch = new CountDownLatch(1);
-                    webClient.get()
-                            .uri("/reactive/restaurants/{id}", r1.getId())
-                            .accept(MediaType.APPLICATION_JSON_UTF8)
-                            .exchange()
-                            .flatMap(resp -> resp.bodyToMono(Restaurant.class))
-                            .log()
-                            .subscribe(r2 -> result.set(r2.equals(r1)), e -> latch.countDown(), latch::countDown);
-                    try {
-                        latch.await();
-                        Assert.assertTrue(result.get());
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                });
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .expectBodyList(Restaurant.class)
+                .hasSize(100)
+                .consumeWith(rs -> Flux.fromIterable(rs)
+                        .log()
+                        .subscribe(r1 -> {
+                            // get
+                            webClient.get()
+                                    .uri("/reactive/restaurants/{id}", r1.getId())
+                                    .accept(MediaType.APPLICATION_JSON_UTF8)
+                                    .exchange()
+                                    .expectStatus().isOk()
+                                    .expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
+                                    .expectBody(Restaurant.class)
+                                    .consumeWith(r2 -> Assert.assertEquals(r1, r2));
+                        })
+                );
+    }
+
+    @Test
+    public void testDelay() throws InterruptedException {
+        // start from scratch
+        restaurantRepository.deleteAll().block();
+
+        // prepare (reset timeout to 1 minute, default value is 5 seconds)
+        WebTestClient webClient = WebTestClient.bindToController(new RestaurantController(restaurantRepository, reactiveMongoTemplate))
+                .configureClient().responseTimeout(Duration.ofMinutes(1)).build();
+        Restaurant[] restaurants = IntStream.range(0, 10)
+                .mapToObj(String::valueOf)
+                .map(s -> new Restaurant(s, s, s))
+                .toArray(Restaurant[]::new);
+
+        // create (1/s)
+        webClient.post().uri("/reactive/restaurants")
+                .accept(MediaType.APPLICATION_JSON_UTF8)
+                .body(Flux.just(restaurants).delayElements(Duration.ofSeconds(1)), Restaurant.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .expectBodyList(Restaurant.class)
+                .hasSize(10);
+
+        // findAll (1/s)
+        WebTestClient.ResponseSpec exchange = webClient.get().uri("/reactive/delay/restaurants")
+                .accept(MediaType.APPLICATION_JSON_UTF8)
+                .exchange();
+        exchange.expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
+                .expectBodyList(Restaurant.class)
+                .hasSize(10);
     }
 }
