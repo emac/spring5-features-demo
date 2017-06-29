@@ -58,7 +58,7 @@ public class ThroughtputTests {
         // start from scratch
         restaurantRepository.deleteAll().block();
 
-        // prepare
+        // prepare (reset timeout to 1 minute, default value is 5 seconds)
         WebTestClient webClient = WebTestClient.bindToController(new RestaurantController(restaurantRepository, reactiveMongoTemplate))
                 .configureClient().responseTimeout(Duration.ofMinutes(1)).build();
         Restaurant[] restaurants = IntStream.range(0, PACK_SIZE)

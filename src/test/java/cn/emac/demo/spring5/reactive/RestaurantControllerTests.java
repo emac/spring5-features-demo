@@ -92,7 +92,7 @@ public class RestaurantControllerTests {
         // prepare (reset timeout to 1 minute, default value is 5 seconds)
         WebTestClient webClient = WebTestClient.bindToController(new RestaurantController(restaurantRepository, reactiveMongoTemplate))
                 .configureClient().responseTimeout(Duration.ofMinutes(1)).build();
-        Restaurant[] restaurants = IntStream.range(0, 10)
+        Restaurant[] restaurants = IntStream.range(0, 3)
                 .mapToObj(String::valueOf)
                 .map(s -> new Restaurant(s, s, s))
                 .toArray(Restaurant[]::new);
@@ -105,7 +105,7 @@ public class RestaurantControllerTests {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .expectBodyList(Restaurant.class)
-                .hasSize(10);
+                .hasSize(3);
 
         // findAll (1/s)
         WebTestClient.ResponseSpec exchange = webClient.get().uri("/reactive/delay/restaurants")
@@ -114,6 +114,6 @@ public class RestaurantControllerTests {
         exchange.expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .expectBodyList(Restaurant.class)
-                .hasSize(10);
+                .hasSize(3);
     }
 }
