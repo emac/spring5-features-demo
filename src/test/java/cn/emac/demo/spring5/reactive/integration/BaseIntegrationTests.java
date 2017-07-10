@@ -1,15 +1,11 @@
-package cn.emac.demo.spring5.reactive;
+package cn.emac.demo.spring5.reactive.integration;
 
 import cn.emac.demo.spring5.reactive.domain.Restaurant;
 import cn.emac.demo.spring5.reactive.repositories.RestaurantRepository;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.concurrent.CountDownLatch;
@@ -20,10 +16,7 @@ import java.util.stream.IntStream;
  * @author Emac
  * @since 2017-05-29
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ActiveProfiles("test")
-public class RestaurantControllerIntegrationTests {
+public abstract class BaseIntegrationTests {
 
     @Autowired
     private RestaurantRepository restaurantRepository;

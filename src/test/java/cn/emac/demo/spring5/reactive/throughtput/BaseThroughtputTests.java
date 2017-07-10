@@ -1,17 +1,13 @@
-package cn.emac.demo.spring5.reactive;
+package cn.emac.demo.spring5.reactive.throughtput;
 
-import cn.emac.demo.spring5.reactive.controllers.RestaurantController;
 import cn.emac.demo.spring5.reactive.domain.Restaurant;
 import cn.emac.demo.spring5.reactive.repositories.RestaurantRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 
@@ -27,18 +23,16 @@ import java.util.stream.IntStream;
  * @author Emac
  * @since 2017-05-29
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class ThroughtputTests {
+public abstract class BaseThroughtputTests {
 
     public static final int CONCURRENT_SIZE = 100;
     public static final int PACK_SIZE = 1_000;
 
     @Autowired
-    private RestaurantRepository restaurantRepository;
+    protected RestaurantRepository restaurantRepository;
 
     @Autowired
-    private ReactiveMongoTemplate reactiveMongoTemplate;
+    protected ReactiveMongoTemplate reactiveMongoTemplate;
 
     private LocalDateTime start;
 
@@ -53,14 +47,15 @@ public class ThroughtputTests {
         System.out.println(String.format("\nExecution time: %s milli-seconds", Duration.between(start, end).toMillis()));
     }
 
+    protected abstract WebTestClient prepareClient();
+
     @Test
     public void testThroughput() throws InterruptedException {
         // start from scratch
         restaurantRepository.deleteAll().block();
 
         // prepare (reset timeout to 1 minute, default value is 5 seconds)
-        WebTestClient webClient = WebTestClient.bindToController(new RestaurantController(restaurantRepository, reactiveMongoTemplate))
-                .configureClient().responseTimeout(Duration.ofMinutes(1)).build();
+        WebTestClient webClient = prepareClient();
         Restaurant[] restaurants = IntStream.range(0, PACK_SIZE)
                 .mapToObj(String::valueOf)
                 .map(s -> new Restaurant(s, s, s))

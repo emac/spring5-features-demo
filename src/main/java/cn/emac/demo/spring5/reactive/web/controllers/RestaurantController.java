@@ -1,4 +1,4 @@
-package cn.emac.demo.spring5.reactive.controllers;
+package cn.emac.demo.spring5.reactive.web.controllers;
 
 import cn.emac.demo.spring5.reactive.domain.Restaurant;
 import cn.emac.demo.spring5.reactive.repositories.RestaurantRepository;

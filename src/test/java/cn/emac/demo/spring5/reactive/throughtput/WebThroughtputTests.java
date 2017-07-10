@@ -1,4 +1,4 @@
-package cn.emac.demo.spring5.reactive;
+package cn.emac.demo.spring5.reactive.throughtput;
 
 import cn.emac.demo.spring5.reactive.web.controllers.RestaurantController;
 import org.junit.runner.RunWith;
@@ -14,7 +14,7 @@ import java.time.Duration;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class RestaurantControllerTests extends BaseUnitTests {
+public class WebThroughtputTests extends BaseThroughtputTests {
 
     @Override
     protected WebTestClient prepareClient() {
