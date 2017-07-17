@@ -19,11 +19,11 @@ import java.time.Duration;
 public class RestaurantHandlerTests extends BaseUnitTests {
 
     @Autowired
-    private RouterFunction<ServerResponse> responseRouter;
+    private RouterFunction<ServerResponse> restaurantRouter;
 
     @Override
     protected WebTestClient prepareClient() {
-        WebTestClient webClient = WebTestClient.bindToRouterFunction(responseRouter)
+        WebTestClient webClient = WebTestClient.bindToRouterFunction(restaurantRouter)
                 .configureClient().baseUrl("http://localhost:9090").responseTimeout(Duration.ofMinutes(1)).build();
         return webClient;
     }

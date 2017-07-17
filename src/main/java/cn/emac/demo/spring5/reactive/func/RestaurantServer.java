@@ -28,13 +28,17 @@ public class RestaurantServer implements CommandLineRunner {
     @Autowired
     private RestaurantHandler restaurantHandler;
 
+    /**
+     * 注册自定义RouterFunction
+     */
     @Bean
-    public RouterFunction<ServerResponse> responseRouter() {
+    public RouterFunction<ServerResponse> restaurantRouter() {
         RouterFunction<ServerResponse> router = route(GET("/reactive/restaurants").and(accept(APPLICATION_JSON_UTF8)), restaurantHandler::findAll)
                 .andRoute(GET("/reactive/delay/restaurants").and(accept(APPLICATION_JSON_UTF8)), restaurantHandler::findAllDelay)
                 .andRoute(GET("/reactive/restaurants/{id}").and(accept(APPLICATION_JSON_UTF8)), restaurantHandler::get)
                 .andRoute(POST("/reactive/restaurants").and(accept(APPLICATION_JSON_UTF8)).and(contentType(APPLICATION_JSON_UTF8)), restaurantHandler::create)
                 .andRoute(DELETE("/reactive/restaurants/{id}").and(accept(APPLICATION_JSON_UTF8)), restaurantHandler::delete)
+                // 注册自定义HandlerFilterFunction
                 .filter((request, next) -> {
                     if (HttpMethod.PUT.equals(request.method())) {
                         return ServerResponse.status(HttpStatus.BAD_REQUEST).build();
@@ -46,10 +50,14 @@ public class RestaurantServer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        RouterFunction<ServerResponse> router = responseRouter();
+        RouterFunction<ServerResponse> router = restaurantRouter();
+        // 转化为通用的Reactive HttpHandler
         HttpHandler httpHandler = toHttpHandler(router);
+        // 适配成Netty Server所需的Handler
         ReactorHttpHandlerAdapter httpAdapter = new ReactorHttpHandlerAdapter(httpHandler);
+        // 创建Netty Server
         HttpServer server = HttpServer.create("localhost", 9090);
+        // 注册Handler并启动Netty Server
         server.newHandler(httpAdapter).block();
     }
 }
