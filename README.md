@@ -4,7 +4,7 @@
 
 ![](http://emacoo.cn/backend/spring5-overview/webflux-overview.png)
 
-**图片出处：[Spring Framework Reference Documentation](http://docs.spring.io/spring/docs/5.0.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/)**
+*图片出处：[Spring Framework Reference Documentation](http://docs.spring.io/spring/docs/5.0.0.BUILD-SNAPSHOT/spring-framework-reference/htmlsingle/)*
 
 左侧是传统的基于Servlet的Spring Web MVC框架，右侧是5.0版本新引入的基于Reactive Streams的Spring WebFlux框架，从上到下依次是Router Functions，WebFlux，Reactive Streams三个新组件。
 

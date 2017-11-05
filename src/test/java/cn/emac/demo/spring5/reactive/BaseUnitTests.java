@@ -64,7 +64,7 @@ public abstract class BaseUnitTests {
                 .expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
                 .expectBodyList(Restaurant.class)
                 .hasSize(100)
-                .consumeWith(rs -> Flux.fromIterable(rs)
+                .consumeWith(rs -> Flux.fromIterable(rs.getResponseBody())
                         .log()
                         .subscribe(r1 -> {
                             // get
@@ -75,7 +75,7 @@ public abstract class BaseUnitTests {
                                     .expectStatus().isOk()
                                     .expectHeader().contentType(MediaType.APPLICATION_JSON_UTF8)
                                     .expectBody(Restaurant.class)
-                                    .consumeWith(r2 -> Assert.assertEquals(r1, r2));
+                                    .consumeWith(r2 -> Assert.assertEquals(r1, r2.getResponseBody()));
                         })
                 );
     }
